@@ -255,21 +255,21 @@ def main():
     ''' builds step-by-step decomission plan for a given Solr cluster '''
 
     parser = argparse.ArgumentParser(prog='solr-mover')
-    parser.add_argument('--statepath')
-    parser.add_argument('--use-demo-topology', action='store_true')
+    parser.add_argument('--state-path')
+    parser.add_argument('--use-demo-placement', action='store_true')
     parser.add_argument('--decom', help='list of previously decomissioned node')
     parser.add_argument('--target', help='list of target nodes to decomission')
     args = parser.parse_args()
 
-    if args.statepath:
-        with open(args.statepath, 'r') as f:
+    if args.state_path:
+        with open(args.state_path, 'r') as f:
             placement = load_state(f)
 
-    elif args.use_demo_topology:
+    elif args.use_demo_placement:
         placement = build_demo_placement()
 
     else:
-        print('You must provide a statepath or use the demo topology')
+        print('You must provide a --state-path or --use-demo-placement')
         parser.print_help()
         sys.exit(1)
 

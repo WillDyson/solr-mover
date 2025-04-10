@@ -106,13 +106,13 @@ def iter(placement, processed, ignored=set(), processing=set()):
 
     next_node = candidate_nodes.pop()
 
-    shard_counter = \
-        Counter([shard for replicas in placement.values() for (shard, _) in replicas])
-
     updated_placement = {node: replicas.copy() for node, replicas in placement.items()}
 
     for (shard, replica) in placement[next_node]:
-        if shard_counter[shard] == 3:
+        shard_counter = \
+            Counter([shard for replicas in updated_placement.values() for (shard, _) in replicas])
+
+        if shard_counter[shard] >= 3:
             updated_placement[next_node].remove((shard, replica))
 
         elif shard_counter[shard] == 2:

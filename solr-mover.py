@@ -281,6 +281,11 @@ def main():
     if args.target:
         ignored = placement.keys() - set(args.target.split(','))
 
+    tot_moved = 0
+    tot_added = 0
+    tot_removed = 0
+    tot_decom = 0
+
     print('\n#########    Initial State    #########\n')
     describe_placement(placement, processed, ignored)
 
@@ -292,13 +297,29 @@ def main():
 
         updated_placement, new_processed = iter(placement, processed, ignored)
 
+        print(f'\n######### Iteration {iters+1} #########\n')
+        ensure_sufficient_replicas(updated_placement)
         describe_placement_diff(placement, updated_placement)
-        describe_placement(placement)
+        describe_placement(updated_placement, processed, new_processed)
+        print('Decommissioned node(s):', ', '.join(new_processed))
+
+        no_moved, no_added, no_removed = summarise_placement_diff(placement, updated_placement)
+        tot_moved += no_moved
+        tot_added += no_added
+        tot_removed += no_removed
+        tot_decom += len(new_processed)
+        print(f'iter_moved={no_moved} iter_added={no_added} iter_removed={no_removed}')
 
         placement = updated_placement
         processed.update(new_processed)
 
         iters += 1
+
+    print('\n#########       Summary       #########\n')
+    print(f'total_moved={tot_moved}')
+    print(f'total_added={tot_added}')
+    print(f'total_removed={tot_removed}')
+    print(f'total_decommissioned={tot_decom}')
 
 
 if __name__ == '__main__':

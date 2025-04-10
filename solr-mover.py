@@ -88,7 +88,7 @@ def move_candidate(placement, replica, ignored, processed):
             score *= NODE_PROCESSED_FACTOR
 
         if not min_score or score < min_score:
-            if score <= MAX_REPLICAS_PER_NODE:
+            if score < MAX_REPLICAS_PER_NODE:
                 min_score = score
                 min_node = node
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+import argparse
 import sys
-from collections import defaultdict, Counter
 import json
+from collections import defaultdict, Counter
 
 # number of decomission iterations to allow
 MAX_ITERS = 10
@@ -41,6 +42,29 @@ def build_demo_placement():
             placement[nodes[i]].append(replica)
 
     return dict(placement)
+
+
+def load_state(f):
+    ''' creates a placement using Solr state '''
+
+    state = json.load(f)
+
+    placement = defaultdict(list)
+
+    collections = state['cluster']['collections']
+
+    for collection in collections:
+        shards = collections[collection]['shards']
+
+        for shard in shards:
+            replicas = shards[shard]['replicas']
+
+            for replica in replicas:
+                node = replicas[replica]['node_name']
+
+                placement[node].append((f'{collection}.{shard}', replica))
+
+    return placement
 
 
 def move_candidate(placement, replica, ignored, processed):
@@ -164,24 +188,43 @@ def load_state(f):
 def main():
     ''' builds step-by-step decomission plan for a given Solr cluster '''
 
-    _, state_path = sys.argv
+    parser = argparse.ArgumentParser(prog='solr-mover')
+    parser.add_argument('--statepath')
+    parser.add_argument('--use-demo-topology', action='store_true')
+    parser.add_argument('--decom', help='list of previously decomissioned node')
+    parser.add_argument('--target', help='list of target nodes to decomission')
+    args = parser.parse_args()
 
-    with open(state_path, 'r') as f:
-        placement = load_state(f)
+    if args.statepath:
+        with open(args.statepath, 'r') as f:
+            placement = load_state(f)
 
-    # placement = build_demo_placement()
+    elif args.use_demo_topology:
+        placement = build_demo_placement()
+
+    else:
+        print('You must provide a statepath or use the demo topology')
+        parser.print_help()
+        sys.exit(1)
 
     processed = set()
+    if args.decom:
+        processed = set(args.decom.split(','))
 
-    describe_placement(placement)
+    ignored = set()
+    if args.target:
+        ignored = placement.keys() - set(args.target.split(','))
+
+    print('\n#########    Initial State    #########\n')
+    describe_placement(placement, processed, ignored)
 
     iters = 0
 
-    while len(processed) < len(placement):
+    while len(processed.union(ignored)) < len(placement):
         if iters > MAX_ITERS:
             raise Exception('Max iterations reached')
 
-        updated_placement, new_processed = iter(placement, processed)
+        updated_placement, new_processed = iter(placement, processed, ignored)
 
         describe_placement_diff(placement, updated_placement)
         describe_placement(placement)

@@ -18,12 +18,12 @@ NODE_PROCESSED_FACTOR=1.2
 def build_demo_placement():
     ''' build demo init structure for solr (ignores shards as a concept wlog) '''
 
-    nodes = [f'node_{i}' for i in range(6)]
-    shards = [f'shard_{i}_1' for i in range(10)]
+    nodes = [f'node_{i}.example.com:8995_solr' for i in range(6)]
+    shards = [f'vertex_index.shard{i}' for i in range(10)]
     placement = defaultdict(list)
 
     for shard in shards:
-        for replica in [(shard, f'replica_{i}') for i in range(3)]:
+        for replica in [(shard, f'core_node{i}') for i in range(3)]:
             node_scores = [0 for _ in nodes]
 
             for i, node in enumerate(nodes):

@@ -13,86 +13,148 @@ It accepts a Solr state JSON file path as an argument.
 ## Example output
 
 ```
-$ python3 solr-mover.py solr-state.json
-node_0: shard_0_1 shard_2_1 shard_4_1 shard_6_1 shard_8_1
-node_1: shard_0_1 shard_2_1 shard_4_1 shard_6_1 shard_8_1
-node_2: shard_0_1 shard_2_1 shard_4_1 shard_6_1 shard_8_1
-node_3: shard_1_1 shard_3_1 shard_5_1 shard_7_1 shard_9_1
-node_4: shard_1_1 shard_3_1 shard_5_1 shard_7_1 shard_9_1
-node_5: shard_1_1 shard_3_1 shard_5_1 shard_7_1 shard_9_1
+$ python3 solr-mover.py --state-path solr-state.json
+#########    Initial State    #########
 
-removed ('shard_0_1', 'replica_1') from node_1
-removed ('shard_2_1', 'replica_1') from node_1
-removed ('shard_4_1', 'replica_1') from node_1
-removed ('shard_6_1', 'replica_1') from node_1
-removed ('shard_8_1', 'replica_1') from node_1
-removed ('shard_1_1', 'replica_1') from node_4
-removed ('shard_3_1', 'replica_1') from node_4
-removed ('shard_5_1', 'replica_1') from node_4
-removed ('shard_7_1', 'replica_1') from node_4
-removed ('shard_9_1', 'replica_1') from node_4
+node_0.example.com:8995_solr [ ] (5): vertex_index.shard0 vertex_index.shard2 vertex_index.shard4 vertex_index.shard6 vertex_index.shard8
+node_1.example.com:8995_solr [ ] (5): vertex_index.shard0 vertex_index.shard2 vertex_index.shard4 vertex_index.shard6 vertex_index.shard8
+node_2.example.com:8995_solr [ ] (5): vertex_index.shard0 vertex_index.shard2 vertex_index.shard4 vertex_index.shard6 vertex_index.shard8
+node_3.example.com:8995_solr [ ] (5): vertex_index.shard1 vertex_index.shard3 vertex_index.shard5 vertex_index.shard7 vertex_index.shard9
+node_4.example.com:8995_solr [ ] (5): vertex_index.shard1 vertex_index.shard3 vertex_index.shard5 vertex_index.shard7 vertex_index.shard9
+node_5.example.com:8995_solr [ ] (5): vertex_index.shard1 vertex_index.shard3 vertex_index.shard5 vertex_index.shard7 vertex_index.shard9
 
-node_0: shard_0_1 shard_2_1 shard_4_1 shard_6_1 shard_8_1
-node_1:
-node_2: shard_0_1 shard_2_1 shard_4_1 shard_6_1 shard_8_1
-node_3: shard_1_1 shard_3_1 shard_5_1 shard_7_1 shard_9_1
-node_4:
-node_5: shard_1_1 shard_3_1 shard_5_1 shard_7_1 shard_9_1
 
-added ('shard_3_1', 'replica_0') to node_1
-added ('shard_5_1', 'replica_0') to node_1
-added ('shard_7_1', 'replica_0') to node_1
-added ('shard_9_1', 'replica_0') to node_1
-added ('shard_0_1', 'replica_0') to node_4
-added ('shard_2_1', 'replica_0') to node_4
-added ('shard_4_1', 'replica_0') to node_4
-added ('shard_6_1', 'replica_0') to node_4
-added ('shard_8_1', 'replica_0') to node_4
-added ('shard_1_1', 'replica_0') to node_4
-removed ('shard_0_1', 'replica_0') from node_0
-removed ('shard_2_1', 'replica_0') from node_0
-removed ('shard_4_1', 'replica_0') from node_0
-removed ('shard_6_1', 'replica_0') from node_0
-removed ('shard_8_1', 'replica_0') from node_0
-removed ('shard_1_1', 'replica_0') from node_3
-removed ('shard_3_1', 'replica_0') from node_3
-removed ('shard_5_1', 'replica_0') from node_3
-removed ('shard_7_1', 'replica_0') from node_3
-removed ('shard_9_1', 'replica_0') from node_3
+######### Iteration 1 #########
 
-node_0:
-node_1: shard_3_1 shard_5_1 shard_7_1 shard_9_1
-node_2: shard_0_1 shard_2_1 shard_4_1 shard_6_1 shard_8_1
-node_3:
-node_4: shard_0_1 shard_2_1 shard_4_1 shard_6_1 shard_8_1 shard_1_1
-node_5: shard_1_1 shard_3_1 shard_5_1 shard_7_1 shard_9_1
+# removing vertex_index.shard0 from node_2.example.com:8995_solr
+./delete_replica.sh vertex_index shard0 core_node2
 
-added ('shard_5_1', 'replica_2') to node_0
-added ('shard_7_1', 'replica_2') to node_0
-added ('shard_9_1', 'replica_2') to node_0
-added ('shard_8_1', 'replica_2') to node_1
-added ('shard_0_1', 'replica_2') to node_3
-added ('shard_2_1', 'replica_2') to node_3
-added ('shard_4_1', 'replica_2') to node_3
-added ('shard_6_1', 'replica_2') to node_3
-added ('shard_1_1', 'replica_2') to node_3
-added ('shard_3_1', 'replica_2') to node_3
-removed ('shard_0_1', 'replica_2') from node_2
-removed ('shard_2_1', 'replica_2') from node_2
-removed ('shard_4_1', 'replica_2') from node_2
-removed ('shard_6_1', 'replica_2') from node_2
-removed ('shard_8_1', 'replica_2') from node_2
-removed ('shard_1_1', 'replica_2') from node_5
-removed ('shard_3_1', 'replica_2') from node_5
-removed ('shard_5_1', 'replica_2') from node_5
-removed ('shard_7_1', 'replica_2') from node_5
-removed ('shard_9_1', 'replica_2') from node_5
+# removing vertex_index.shard2 from node_2.example.com:8995_solr
+./delete_replica.sh vertex_index shard2 core_node2
 
-node_0: shard_5_1 shard_7_1 shard_9_1
-node_1: shard_3_1 shard_5_1 shard_7_1 shard_9_1 shard_8_1
-node_2:
-node_3: shard_0_1 shard_2_1 shard_4_1 shard_6_1 shard_1_1 shard_3_1
-node_4: shard_0_1 shard_2_1 shard_4_1 shard_6_1 shard_8_1 shard_1_1
-node_5:
+# removing vertex_index.shard4 from node_2.example.com:8995_solr
+./delete_replica.sh vertex_index shard4 core_node2
+
+# removing vertex_index.shard6 from node_2.example.com:8995_solr
+./delete_replica.sh vertex_index shard6 core_node2
+
+# removing vertex_index.shard8 from node_2.example.com:8995_solr
+./delete_replica.sh vertex_index shard8 core_node2
+
+# removing vertex_index.shard1 from node_3.example.com:8995_solr
+./delete_replica.sh vertex_index shard1 core_node0
+
+# removing vertex_index.shard3 from node_3.example.com:8995_solr
+./delete_replica.sh vertex_index shard3 core_node0
+
+# removing vertex_index.shard5 from node_3.example.com:8995_solr
+./delete_replica.sh vertex_index shard5 core_node0
+
+# removing vertex_index.shard7 from node_3.example.com:8995_solr
+./delete_replica.sh vertex_index shard7 core_node0
+
+# removing vertex_index.shard9 from node_3.example.com:8995_solr
+./delete_replica.sh vertex_index shard9 core_node0
+
+node_0.example.com:8995_solr [ ] (5): vertex_index.shard0 vertex_index.shard2 vertex_index.shard4 vertex_index.shard6 vertex_index.shard8
+node_1.example.com:8995_solr [ ] (5): vertex_index.shard0 vertex_index.shard2 vertex_index.shard4 vertex_index.shard6 vertex_index.shard8
+node_2.example.com:8995_solr [*] (0):
+node_3.example.com:8995_solr [*] (0):
+node_4.example.com:8995_solr [ ] (5): vertex_index.shard1 vertex_index.shard3 vertex_index.shard5 vertex_index.shard7 vertex_index.shard9
+node_5.example.com:8995_solr [ ] (5): vertex_index.shard1 vertex_index.shard3 vertex_index.shard5 vertex_index.shard7 vertex_index.shard9
+
+Decommissioned node(s): node_2.example.com:8995_solr, node_3.example.com:8995_solr
+iter_moved=0 iter_added=0 iter_removed=10
+
+######### Iteration 2 #########
+
+# moving vertex_index.shard0 from node_1.example.com:8995_solr -> node_2.example.com:8995_solr
+./move_replica.sh vertex_index core_node1 node_2.example.com:8995_solr
+
+# moving vertex_index.shard2 from node_1.example.com:8995_solr -> node_2.example.com:8995_solr
+./move_replica.sh vertex_index core_node1 node_2.example.com:8995_solr
+
+# moving vertex_index.shard4 from node_1.example.com:8995_solr -> node_2.example.com:8995_solr
+./move_replica.sh vertex_index core_node1 node_2.example.com:8995_solr
+
+# moving vertex_index.shard6 from node_1.example.com:8995_solr -> node_2.example.com:8995_solr
+./move_replica.sh vertex_index core_node1 node_2.example.com:8995_solr
+
+# moving vertex_index.shard8 from node_1.example.com:8995_solr -> node_2.example.com:8995_solr
+./move_replica.sh vertex_index core_node1 node_2.example.com:8995_solr
+
+# moving vertex_index.shard1 from node_4.example.com:8995_solr -> node_3.example.com:8995_solr
+./move_replica.sh vertex_index core_node1 node_3.example.com:8995_solr
+
+# moving vertex_index.shard3 from node_4.example.com:8995_solr -> node_3.example.com:8995_solr
+./move_replica.sh vertex_index core_node1 node_3.example.com:8995_solr
+
+# moving vertex_index.shard5 from node_4.example.com:8995_solr -> node_3.example.com:8995_solr
+./move_replica.sh vertex_index core_node1 node_3.example.com:8995_solr
+
+# moving vertex_index.shard7 from node_4.example.com:8995_solr -> node_3.example.com:8995_solr
+./move_replica.sh vertex_index core_node1 node_3.example.com:8995_solr
+
+# moving vertex_index.shard9 from node_4.example.com:8995_solr -> node_3.example.com:8995_solr
+./move_replica.sh vertex_index core_node1 node_3.example.com:8995_solr
+
+node_0.example.com:8995_solr [ ] (5): vertex_index.shard0 vertex_index.shard2 vertex_index.shard4 vertex_index.shard6 vertex_index.shard8
+node_1.example.com:8995_solr [*] (0):
+node_2.example.com:8995_solr [.] (5): vertex_index.shard0 vertex_index.shard2 vertex_index.shard4 vertex_index.shard6 vertex_index.shard8
+node_3.example.com:8995_solr [.] (5): vertex_index.shard1 vertex_index.shard3 vertex_index.shard5 vertex_index.shard7 vertex_index.shard9
+node_4.example.com:8995_solr [*] (0):
+node_5.example.com:8995_solr [ ] (5): vertex_index.shard1 vertex_index.shard3 vertex_index.shard5 vertex_index.shard7 vertex_index.shard9
+
+Decommissioned node(s): node_4.example.com:8995_solr, node_1.example.com:8995_solr
+iter_moved=10 iter_added=0 iter_removed=0
+
+######### Iteration 3 #########
+
+# moving vertex_index.shard0 from node_0.example.com:8995_solr -> node_1.example.com:8995_solr
+./move_replica.sh vertex_index core_node0 node_1.example.com:8995_solr
+
+# moving vertex_index.shard2 from node_0.example.com:8995_solr -> node_1.example.com:8995_solr
+./move_replica.sh vertex_index core_node0 node_1.example.com:8995_solr
+
+# moving vertex_index.shard4 from node_0.example.com:8995_solr -> node_1.example.com:8995_solr
+./move_replica.sh vertex_index core_node0 node_1.example.com:8995_solr
+
+# moving vertex_index.shard6 from node_0.example.com:8995_solr -> node_1.example.com:8995_solr
+./move_replica.sh vertex_index core_node0 node_1.example.com:8995_solr
+
+# moving vertex_index.shard8 from node_0.example.com:8995_solr -> node_1.example.com:8995_solr
+./move_replica.sh vertex_index core_node0 node_1.example.com:8995_solr
+
+# moving vertex_index.shard1 from node_5.example.com:8995_solr -> node_4.example.com:8995_solr
+./move_replica.sh vertex_index core_node2 node_4.example.com:8995_solr
+
+# moving vertex_index.shard3 from node_5.example.com:8995_solr -> node_4.example.com:8995_solr
+./move_replica.sh vertex_index core_node2 node_4.example.com:8995_solr
+
+# moving vertex_index.shard5 from node_5.example.com:8995_solr -> node_4.example.com:8995_solr
+./move_replica.sh vertex_index core_node2 node_4.example.com:8995_solr
+
+# moving vertex_index.shard7 from node_5.example.com:8995_solr -> node_4.example.com:8995_solr
+./move_replica.sh vertex_index core_node2 node_4.example.com:8995_solr
+
+# moving vertex_index.shard9 from node_5.example.com:8995_solr -> node_4.example.com:8995_solr
+./move_replica.sh vertex_index core_node2 node_4.example.com:8995_solr
+
+node_0.example.com:8995_solr [*] (0):
+node_1.example.com:8995_solr [.] (5): vertex_index.shard0 vertex_index.shard2 vertex_index.shard4 vertex_index.shard6 vertex_index.shard8
+node_2.example.com:8995_solr [.] (5): vertex_index.shard0 vertex_index.shard2 vertex_index.shard4 vertex_index.shard6 vertex_index.shard8
+node_3.example.com:8995_solr [.] (5): vertex_index.shard1 vertex_index.shard3 vertex_index.shard5 vertex_index.shard7 vertex_index.shard9
+node_4.example.com:8995_solr [.] (5): vertex_index.shard1 vertex_index.shard3 vertex_index.shard5 vertex_index.shard7 vertex_index.shard9
+node_5.example.com:8995_solr [*] (0):
+
+Decommissioned node(s): node_5.example.com:8995_solr, node_0.example.com:8995_solr
+iter_moved=10 iter_added=0 iter_removed=0
+
+#########       Summary       #########
+
+total_moved=20
+total_added=0
+total_removed=10
+total_decommissioned=6
 ```
 

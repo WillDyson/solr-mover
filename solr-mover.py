@@ -135,54 +135,120 @@ def iter(placement, processed, ignored=set(), processing=set()):
     return iter(placement, processed, ignored.union({next_node}), processing)
 
 
-def describe_placement(placement):
+def describe_placement(placement, previously_processed, new_processed=set()):
     ''' pretty prints a placement '''
 
     for node in placement:
+        c = ' '
+
+        if node in previously_processed:
+            c = '.'
+
+        if node in new_processed:
+            c = '*'
+
+        shard_count = len(placement[node])
         shards = ' '.join(shard for (shard, _) in placement[node])
 
-        print(f'{node}: {shards}')
+        print(f'{node} [{c}] ({shard_count}): {shards}')
 
     print()
+
+
+def summarise_placement_diff(old, new):
+    ''' returns counts for placement diff changes '''
+
+    old_shards = defaultdict(set)
+
+    for node in old:
+        for (shard, _) in old[node]:
+            old_shards[shard].add(node)
+
+    new_shards = defaultdict(set)
+
+    for node in new:
+        for (shard, _) in new[node]:
+            new_shards[shard].add(node)
+
+    if old_shards.keys() - new_shards.keys():
+        raise Exception('Shards missing in new placement')
+
+    tot_moved = 0
+    tot_added = 0
+    tot_removed = 0
+
+    for shard in new_shards:
+        nodes_added = new_shards[shard] - old_shards[shard]
+        nodes_removed = old_shards[shard] - new_shards[shard]
+
+        no_moved = min(len(nodes_added), len(nodes_removed))
+        no_added = len(nodes_added) - no_moved
+        no_removed = len(nodes_removed) - no_moved
+
+        tot_moved += no_moved
+        tot_added += no_added
+        tot_removed += no_removed
+
+    return tot_moved, tot_added, tot_removed
+
+
+def ensure_sufficient_replicas(new):
+    ''' asserts at least two replicas per shard '''
+
+    new_shards = defaultdict(set)
+
+    for node in new:
+        for (shard, _) in new[node]:
+            new_shards[shard].add(node)
+
+    for shard in new_shards:
+        if len(new_shards[shard]) < 2:
+            raise Exception(f'Shard {shard} less than two replicas')
 
 
 def describe_placement_diff(old, new):
     ''' prints actions needed to get from old placement to new '''
 
-    for node in old:
-        for replica in new[node]:
-            if replica not in old[node]:
-                print('added', replica, 'to', node)
+    old_shards = defaultdict(set)
 
     for node in old:
-        for replica in old[node]:
-            if replica not in new[node]:
-                print('removed', replica, 'from', node)
+        for (shard, _) in old[node]:
+            old_shards[shard].add(node)
 
-    print()
+    new_shards = defaultdict(set)
 
+    for node in new:
+        for (shard, _) in new[node]:
+            new_shards[shard].add(node)
 
-def load_state(f):
-    ''' creates a placement using Solr state '''
+    if old_shards.keys() - new_shards.keys():
+        raise Exception('Shards missing in new placement')
 
-    state = json.load(f)
+    for shard in new_shards:
+        collection, shard_id = shard.split('.')
 
-    placement = defaultdict(list)
+        nodes_added = new_shards[shard] - old_shards[shard]
+        nodes_removed = old_shards[shard] - new_shards[shard]
 
-    collections = state['cluster']['collections']
+        no_moved = min(len(nodes_added), len(nodes_removed))
 
-    for collection in collections:
-        shards = collections[collection]['shards']
+        for _ in range(no_moved):
+            target = nodes_added.pop()
+            source = nodes_removed.pop()
+            replica = next(replica_ for (shard_, replica_) in new[target] if shard_ == shard)
 
-        for shard in shards:
-            replicas = shards[shard]['replicas']
+            print(f'# moving {shard} from {source} -> {target}')
+            print(f'./move_replica.sh {collection} {replica} {target}\n')
 
-            for replica in replicas:
-                node = replicas[replica]['node_name']
+        for node in nodes_added:
+            print(f'# adding {shard} to {node}')
+            print(f'./add_replica.sh {collecion} {shard_id} {node}\n')
 
-                placement[node].append((f'{collection}.{shard}', replica))
+        for node in nodes_removed:
+            replica = next(replica_ for (shard_, replica_) in old[node] if shard_ == shard)
 
-    return placement
+            print(f'# removing {shard} from {node}')
+            print(f'./delete_replica.sh {collection} {shard_id} {replica}\n')
 
 
 def main():

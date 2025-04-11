@@ -238,6 +238,7 @@ def describe_placement_diff(old, new):
             replica = next(replica_ for (shard_, replica_) in new[target] if shard_ == shard)
 
             print(f'# moving {shard} from {source} -> {target}')
+            print(f'# delete and add is better than move but it is not possible to pre-generate that')
             print(f'./move_replica.sh {collection} {replica} {target}\n')
 
         for node in nodes_added:
